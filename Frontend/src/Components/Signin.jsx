@@ -1,12 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios'
 const Signin = () => {
-    const {register,handleSubmit,formState:{errors},getValues} = useForm();
-    const onSubmit =(data)=>
+    const  navigate = useNavigate()
+    const [loading,setLoading] = useState(false)
+    const [formData,setFormData] = useState({
+        username:'',
+        email:'',
+        password:''
+    })
+    const {register,handleSubmit,formState:{errors},getValues,reset} = useForm();
+    const onSubmit = async (data,event)=>
+        
     {
-        console.log(data)
+        event.preventDefault()
+       setFormData(data);
+       console.log(`data`,data)
+       console.log(`formdata`,formData);
+       setLoading(true);
+       try {
+           const response = await axios.post('http://localhost:3000/api/signup',data);
+           if(response.status===200)
+           {
+            alert('singin in success');
+            navigate('/login')
+           }
+           
+       } 
+       catch (error) {
+           if(error.response)
+           {
+                if(error.response.status===400)
+                {
+                    alert('user ia already exist')
+                }
+                else{
+                    alert('error occur')
+                }
+           }
+           else{
+            alert('netwok is down')
+           }
+       }
+       finally{
+        reset();
+        setLoading(false)
+       }
+      
     }
+    
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -17,13 +61,14 @@ const Signin = () => {
               Username
             </label>
             <input
+           
               type="text"
               id="username"
               name="username"
               placeholder="Enter your username"
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                {...register('username',{required:'username is required'})}
-
+     
             />
              {errors.username && (
           <p className="mt-1 text-sm text-red-500">{errors.username.message}</p>
@@ -34,6 +79,7 @@ const Signin = () => {
               Email
             </label>
             <input
+           
               type="email"
               id="email"
               name="email"
@@ -61,7 +107,6 @@ const Signin = () => {
               name="password"
               placeholder="Enter your password"
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            
                 {...register('password',{
                     required:'password is required',pattern:{
                         value: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
@@ -77,6 +122,7 @@ const Signin = () => {
               Confirm Password
             </label>
             <input
+            
               type="password"
               id="confirmPassword"
               name="confirmPassword"
@@ -87,7 +133,6 @@ const Signin = () => {
             validate: (value) =>
               value === getValues("password") || "Passwords do not match",
           })}
-
             />
              {errors.confirmpassword && (<p className="mt-1 text-sm text-red-500">{errors.confirmpassword.message}</p>
              )}
@@ -96,7 +141,8 @@ const Signin = () => {
             type="submit"
             className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
-            Sign In
+          {loading?'Signing' :  'SignIn'}
+           
           </button>
         </form>
         <div className="mt-4 text-center">
